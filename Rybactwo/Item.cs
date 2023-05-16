@@ -18,9 +18,9 @@ namespace Rybactwo
         private bool isVisable;
         private int ticksToEnd;
 
-        public Item()
+        public Item(Vector2 playerPosition)
         {
-            start = new Vector2(144, 80);
+            start = playerPosition;
             position = start;
             move = new Vector2(0);
             ticksToEnd = 0;

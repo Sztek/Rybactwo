@@ -20,8 +20,8 @@ namespace Rybactwo
         private Texture2D castBar;
         public Player()
         {
-            position = new Vector2(144, 80);
-            item = new Item();
+            position = new Vector2(144-24, 80-8);
+            item = new Item(position);
             maxCast = 1;
             selectedItem = 0;
             direction = 3;

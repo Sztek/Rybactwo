@@ -21,6 +21,7 @@ namespace Rybactwo
         Texture2D character;
         Texture2D pointingCrosshair;
         Texture2D actionCrosshair;
+        Texture2D hud;
 
         SpriteFont gameFont;
 
@@ -67,8 +68,8 @@ namespace Rybactwo
             character = Content.Load<Texture2D>("NPC1");
             //pointingCrosshair = Content.Load<Texture2D>("cursorselect");
             //actionCrosshair = Content.Load<Texture2D>("cursorgrabbing");
-
-            //gameFont = Content.Load<SpriteFont>("fontFile");
+            gameFont = Content.Load<SpriteFont>("font");
+            hud = Content.Load<Texture2D>("hud");
 
             Texture2D[] misc = new Texture2D[1];
 
@@ -84,7 +85,7 @@ namespace Rybactwo
 
             renderTarget = new RenderTarget2D(GraphicsDevice, gameResolution.X, gameResolution.Y);
             renderTargetDestination = GetRenderTargetDestination(gameResolution, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
-            //this.ToggleFullScreen();
+            this.ToggleFullScreen();
         }
 
         protected override void Update(GameTime gameTime)
@@ -178,6 +179,11 @@ namespace Rybactwo
             }
             player.DrawAll();
             npc1.DrawAll();
+            spriteBatch.Draw(
+                            hud,
+                            new Vector2(0,0),
+                            new Rectangle(0, 0, 320, 180),
+                            Color.White);
 
             spriteBatch.End();
             GraphicsDevice.SetRenderTarget(null);
@@ -191,14 +197,14 @@ namespace Rybactwo
             if (showDebug)
             {
 
-                spriteBatch.DrawString(gameFont, userLeftClicks.ToString(), new Vector2(10, 10), Color.Red);
+                spriteBatch.DrawString(gameFont, userLeftClicks.ToString(), new Vector2(10, 10), Color.Black);
                 spriteBatch.DrawString(gameFont,
                     "BLOCK SHIFT: " + ((int)mapa[0].shiftBlock.X) + " , " + ((int)mapa[0].shiftBlock.Y),
-                    new Vector2(10, 30), Color.Red);
+                    new Vector2(10, 30), Color.Black);
                 spriteBatch.DrawString(gameFont,
                     "MAP SHIFT: " + ((int)mapa[0].shiftMap.X).ToString() + ", " + ((int)mapa[0].shiftMap.Y).ToString(),
-                    new Vector2(10, 50), Color.Red);
-                spriteBatch.DrawString(gameFont, "CAST: " + player.cast.ToString(), new Vector2(10, 70), Color.Red);
+                    new Vector2(10, 50), Color.Black);
+                spriteBatch.DrawString(gameFont, "CAST: " + player.cast.ToString(), new Vector2(10, 70), Color.Black);
                 spriteBatch.DrawString(gameFont,
                     "FPS: " + (1 / gameTime.ElapsedGameTime.TotalSeconds).ToString(),
                     new Vector2(10, 90), Color.Black);

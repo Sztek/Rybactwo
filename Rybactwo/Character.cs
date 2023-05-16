@@ -23,7 +23,7 @@ namespace Rybactwo
                 spritebatch.Draw(
                             texture,
                             new Vector2((int)position.X - (int)shiftMap.X, (int)position.Y - (int)shiftMap.Y),
-                            new Rectangle(0, 0, 16, 24),
+                            new Rectangle(0, 8, 16, 16),
                             Color.White);
             }
         }
