@@ -19,8 +19,8 @@ namespace Rybactwo
         SpriteBatch spriteBatch;
         Texture2D tileset;
         Texture2D character;
-        Texture2D pointingCrosshair;
-        Texture2D actionCrosshair;
+        //Texture2D pointingCrosshair;
+        //Texture2D actionCrosshair;
         Texture2D hud;
 
         SpriteFont gameFont;
@@ -28,7 +28,7 @@ namespace Rybactwo
         RenderTarget2D renderTarget;
         Rectangle renderTargetDestination;
 
-        Map[] mapa;
+        Map mapa;
         Player player;
         Npc npc1;
 
@@ -47,11 +47,7 @@ namespace Rybactwo
 
         protected override void LoadContent()
         {
-            mapa = new Map[3];
-            for (int i = 0; i < 3; i++)
-            {
-                mapa[i] = new Map(i);
-            }
+            mapa = new Map();
             player = new Player();
             npc1 = new Npc();
 
@@ -78,10 +74,7 @@ namespace Rybactwo
 
             player.Load(spriteBatch, character, misc);
             npc1.Load(spriteBatch, character);
-            for (int i = 0; i < 3; i++)
-            {
-                mapa[i].Load(tileset, spriteBatch);
-            }
+            mapa.Load(tileset, spriteBatch);
 
             renderTarget = new RenderTarget2D(GraphicsDevice, gameResolution.X, gameResolution.Y);
             renderTargetDestination = GetRenderTargetDestination(gameResolution, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
@@ -114,31 +107,33 @@ namespace Rybactwo
             {
                 speed = (float)(speed * 1.4);
             }
+            for (int i = 0; i < 4; i++) { mapa.direction[i] = false; }
             if (kstate.IsKeyDown(Keys.W))
             {
                 shift.Y -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                mapa.direction[0] = true;
                 player.direction = 0;
             }
             if (kstate.IsKeyDown(Keys.S))
             {
                 shift.Y += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                mapa.direction[1] = true;
                 player.direction = 1;
             }
             if (kstate.IsKeyDown(Keys.A))
             {
                 shift.X -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                mapa.direction[2] = true;
                 player.direction = 2;
             }
             if (kstate.IsKeyDown(Keys.D))
             {
                 shift.X += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
+                mapa.direction[3] = true;
                 player.direction = 3;
             }
-
-            for (int i = 0; i < 3; i++)
-            {
-                shift2 = mapa[i].Move(shift);
-            }
+            mapa.Tick(dTime);
+            //shift2 = mapa.Move(shift);
 
             if (kstate.IsKeyDown(Keys.Space))
             {
@@ -173,12 +168,9 @@ namespace Rybactwo
             GraphicsDevice.Clear(Color.Aqua);
             spriteBatch.Begin();
 
-            for (int i = 0; i < 3; i++)
-            {
-                mapa[i].Draw();
-            }
+            mapa.Draw();
             player.DrawAll();
-            npc1.DrawAll();
+            //npc1.DrawAll();
             spriteBatch.Draw(
                             hud,
                             new Vector2(0,0),
@@ -199,14 +191,14 @@ namespace Rybactwo
 
                 spriteBatch.DrawString(gameFont, userLeftClicks.ToString(), new Vector2(10, 10), Color.Black);
                 spriteBatch.DrawString(gameFont,
-                    "BLOCK SHIFT: " + ((int)mapa[0].shiftBlock.X) + " , " + ((int)mapa[0].shiftBlock.Y),
+                    "BLOCK SHIFT: " + ((int)mapa.shiftBlock.X) + " , " + ((int)mapa.shiftBlock.Y),
                     new Vector2(10, 30), Color.Black);
                 spriteBatch.DrawString(gameFont,
-                    "MAP SHIFT: " + ((int)mapa[0].shiftMap.X).ToString() + ", " + ((int)mapa[0].shiftMap.Y).ToString(),
+                    "MAP SHIFT: " + ((int)mapa.shiftMap.X).ToString() + ", " + ((int)mapa.shiftMap.Y).ToString(),
                     new Vector2(10, 50), Color.Black);
                 spriteBatch.DrawString(gameFont, "CAST: " + player.cast.ToString(), new Vector2(10, 70), Color.Black);
                 spriteBatch.DrawString(gameFont,
-                    "FPS: " + (1 / gameTime.ElapsedGameTime.TotalSeconds).ToString(),
+                    "FPS: " + (gameTime.ElapsedGameTime.TotalSeconds).ToString(),
                     new Vector2(10, 90), Color.Black);
 
             }

@@ -17,28 +17,33 @@ namespace Rybactwo
 {
     internal class Map
     {
-        public int[,] tileMap;
+        public int[,,] tileMap;
         public bool[,] collisionMap;
-        static Point size = new(22, 13);
-        static Point center = new(10, 6);
-        const byte block = 16;
-        Texture2D texture;
-        SpriteBatch spritebatch;
+        private static Point size = new(16, 10);
+        private static Point center = new(10, 6);
+        private static byte warstwy = 3;
+        private const byte block = 16;
+        private Texture2D texture;
+        private SpriteBatch spritebatch;
         public Vector2 shiftBlock = new(0);
         public Point shiftMap = new(123, 360);
-        bool[] wall = new bool[8];
+        private bool[] wall = new bool[8];
+        public bool[] direction;
         private int sizeMapX;
         private int sizeMapY;
         private int tileMapWidth;
+        private double moveTime;
         //private readonly SoundPlayer soundPlayer;
 
-        public Map(int warstwa)
+        public Map()
         {
             sizeMapX = 400;
             sizeMapY = 600;
             tileMapWidth = 103;
-            tileMap = new int[sizeMapX, sizeMapY];
+            tileMap = new int[warstwy, sizeMapX, sizeMapY];
             collisionMap = new bool[sizeMapX, sizeMapY];
+            direction = new bool[4];
+            moveTime = 0;
 
             //Im schizo
 
@@ -46,33 +51,73 @@ namespace Rybactwo
 
             //string filePath = Path.Combine("..\\Content", "1.wav");
             //SoundPlayer soundPlayer = new(filePath);
-
+            
             for (int i = 0; i < sizeMapX; i++)
             {
                 for (int j = 0; j < sizeMapY; j++)
                 {
-                    tileMap[i, j] = -1;
-                    collisionMap[i, j] = false;
+                    for (int k = 0; k < warstwy; k++)
+                    {
+                        tileMap[k, i, j] = -1;
+                        collisionMap[i, j] = false;
+                    }
                 }
             }
-            switch (warstwa)
-            {
-                case 0:
-                    LoadMapFromFile("prolog_teren.csv");
-                    break;
-                case 1:
-                    LoadMapFromFile("prolog_obiekty.csv");
-                    break;
-                case 2:
-                    LoadMapFromFile("prolog_bibeloty.csv");
-                    break;
-            }
+            SelectMap(0);
         }
 
         public void Load(Texture2D texture, SpriteBatch spritebatch)
         {
             this.texture = texture;
             this.spritebatch = spritebatch;
+        }
+
+        public void SelectMap(int id)
+        {
+            switch (id)
+            {
+                case 0:
+                    LoadMapFromFile("prolog_teren.csv", 0);
+                    LoadMapFromFile("prolog_obiekty.csv", 1);
+                    LoadMapFromFile("prolog_bibeloty.csv", 2);
+                    break;
+                default: break;
+            }
+        }
+
+        public void Tick(double dTime)
+        {
+            byte directionCount = 0;
+            foreach (bool x in direction) { if (x) { directionCount++; } }
+            moveTime += dTime;
+            double tickTime = 60;
+            if (directionCount == 1) { tickTime = 1 / 64; }
+            else if (directionCount == 2) { tickTime = (1.2 / 64); }
+            if (moveTime >= tickTime)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    if (direction[i])
+                    {
+                        switch (i)
+                        {
+                            case 0:
+                                Move(new Vector2(0, -1));
+                                break;
+                            case 1:
+                                Move(new Vector2(0, 1));
+                                break;
+                            case 2:
+                                Move(new Vector2(-1, 0));
+                                break;
+                            case 3:
+                                Move(new Vector2(1, 0));
+                                break;
+                        }
+                    }
+                }
+                moveTime = 0;
+            }  
         }
 
         public void Draw()
@@ -83,57 +128,60 @@ namespace Rybactwo
             {
                 for (int j = 0; j < size.Y; j++)
                 {
-                    place = new Vector2(i * 16 - 16 + (int)shiftBlock.X, j * 16 - 16 + (int)shiftBlock.Y);
-                    spritebatch.Draw(
-                        texture,
-                        place,
-                        GetTile(tileMap[i + shiftMap.X, j + shiftMap.Y]),
-                        Color.White);
+                    for (int k = 0; k < warstwy; k++)
+                    {
+                        place = new Vector2(i * 16 + 8 + (int)shiftBlock.X, j * 16 + 8 + (int)shiftBlock.Y);
+                        spritebatch.Draw(
+                            texture,
+                            place,
+                            GetTile(tileMap[k, i + shiftMap.X, j + shiftMap.Y]),
+                            Color.White);
 
-                    if (place.Y == 80 - block)
-                    {
-                        if (place.X < 144 && place.X > 144 - 16)
+                        if (place.Y == 80 - block)
                         {
-                            wall[0] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                        if (place.X >= 144 && place.X < 144 + 16)
+                            if (place.X < 144 && place.X > 144 - 16)
+                            {
+                                wall[0] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                            if (place.X >= 144 && place.X < 144 + 16)
+                            {
+                                wall[1] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                        } //collision up
+                        if (place.Y == 80 + block)
                         {
-                            wall[1] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                    } //collision up
-                    if (place.Y == 80 + block)
-                    {
-                        if (place.X < 144 && place.X > 144 - 16)
+                            if (place.X < 144 && place.X > 144 - 16)
+                            {
+                                wall[2] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                            if (place.X >= 144 && place.X < 144 + 16)
+                            {
+                                wall[3] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                        } //collision down
+                        if (place.X == 144 - block)
                         {
-                            wall[2] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                        if (place.X >= 144 && place.X < 144 + 16)
+                            if (place.Y < 80 && place.Y > 80 - 16)
+                            {
+                                wall[4] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                            if (place.Y >= 80 && place.Y < 80 + 16)
+                            {
+                                wall[5] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                        } //collision left
+                        if (place.X == 144 + block)
                         {
-                            wall[3] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                    } //collision down
-                    if (place.X == 144 - block)
-                    {
-                        if (place.Y < 80 && place.Y > 80 - 16)
-                        {
-                            wall[4] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                        if (place.Y >= 80 && place.Y < 80 + 16)
-                        {
-                            wall[5] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                    } //collision left
-                    if (place.X == 144 + block)
-                    {
-                        if (place.Y < 80 && place.Y > 80 - 16)
-                        {
-                            wall[6] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                        if (place.Y >= 80 && place.Y < 80 + 16)
-                        {
-                            wall[7] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                        }
-                    } //collision right
+                            if (place.Y < 80 && place.Y > 80 - 16)
+                            {
+                                wall[6] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                            if (place.Y >= 80 && place.Y < 80 + 16)
+                            {
+                                wall[7] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
+                            }
+                        } //collision right
+                    }
                 }
             }
         }
@@ -142,13 +190,6 @@ namespace Rybactwo
         {
             if (shift.X != 0 || shift.Y != 0)
             {
-                bool[] collision = new bool[4];
-                for (int i = 0; i < 4; i++) collision[i] = false;
-                if (shift.X != 0 && shift.Y != 0)
-                {
-                    shift.X /= (float)1.41;
-                    shift.Y /= (float)1.41;
-                }
                 if ((wall[0] == true || wall[1] == true) && shift.Y < 0)
                 {
                     shift.Y = 0;
@@ -172,7 +213,7 @@ namespace Rybactwo
 
                 shiftBlock -= shift;
 
-                if (shiftBlock.Y > block)
+                if (shiftBlock.Y > 0)
                 {
                     shiftBlock.Y -= block;
                     shiftMap.Y--;
@@ -184,7 +225,7 @@ namespace Rybactwo
                     shiftMap.Y++;
                 }
 
-                if (shiftBlock.X > block)
+                if (shiftBlock.X > 0)
                 {
                     shiftBlock.X -= block;
                     shiftMap.X--;
@@ -209,7 +250,7 @@ namespace Rybactwo
             return new Vector2(shiftMap.X * 16 - shiftBlock.X, shiftMap.Y * 16 - shiftBlock.Y);
         }
 
-        private void LoadMapFromFile(string file)
+        private void LoadMapFromFile(string file, int w)
         {
             using (var reader = new StreamReader(file))
             {
@@ -221,8 +262,8 @@ namespace Rybactwo
 
                     for (int j = 0; j < values.Length; j++)
                     {
-                        tileMap[j, i] = int.Parse(values[j]);
-                        switch (tileMap[j, i])
+                        tileMap[w, j, i] = int.Parse(values[j]);
+                        switch (tileMap[w, j, i])
                         {
                             case 1:
                                 collisionMap[j, i] = false;
