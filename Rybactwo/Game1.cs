@@ -40,7 +40,7 @@ namespace Rybactwo
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            //TargetElapsedTime = TimeSpan.FromSeconds(1d / 30d); // 30fps
+            TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d); // 30fps
             //IsMouseVisible = true;
             showDebug = false;
         }
@@ -88,7 +88,6 @@ namespace Rybactwo
             KeyboardState kstate = Keyboard.GetState();
             Vector2 shift = new(0);
             Vector2 shift2 = new(0);
-            float speed = 60;
 
             if (kstate.IsKeyDown(Keys.F1))
             {
@@ -103,32 +102,30 @@ namespace Rybactwo
             {
                 ToggleFullScreen();
             }
+            
             if (kstate.IsKeyDown(Keys.LeftShift))
             {
-                speed = (float)(speed * 1.4);
+                mapa.speed = 64;
             }
+            else { mapa.speed = 48; }
             for (int i = 0; i < 4; i++) { mapa.direction[i] = false; }
             if (kstate.IsKeyDown(Keys.W))
             {
-                shift.Y -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
                 mapa.direction[0] = true;
                 player.direction = 0;
             }
             if (kstate.IsKeyDown(Keys.S))
             {
-                shift.Y += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
                 mapa.direction[1] = true;
                 player.direction = 1;
             }
             if (kstate.IsKeyDown(Keys.A))
             {
-                shift.X -= (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
                 mapa.direction[2] = true;
                 player.direction = 2;
             }
             if (kstate.IsKeyDown(Keys.D))
             {
-                shift.X += (speed * (float)gameTime.ElapsedGameTime.TotalSeconds);
                 mapa.direction[3] = true;
                 player.direction = 3;
             }
@@ -144,8 +141,8 @@ namespace Rybactwo
                 player.ClickAction(false);
             }
 
-            npc1.Tick(dTime);
-            npc1.MapMove(shift2);
+            //npc1.Tick(dTime);
+            //npc1.MapMove(shift2);
             player.Tick(dTime);
 
             // Mouse usage

@@ -33,6 +33,7 @@ namespace Rybactwo
         private int sizeMapY;
         private int tileMapWidth;
         private double moveTime;
+        public int speed;
         //private readonly SoundPlayer soundPlayer;
 
         public Map()
@@ -44,6 +45,7 @@ namespace Rybactwo
             collisionMap = new bool[sizeMapX, sizeMapY];
             direction = new bool[4];
             moveTime = 0;
+            speed = 48;
 
             //Im schizo
 
@@ -90,9 +92,9 @@ namespace Rybactwo
             byte directionCount = 0;
             foreach (bool x in direction) { if (x) { directionCount++; } }
             moveTime += dTime;
-            double tickTime = 60;
-            if (directionCount == 1) { tickTime = 1 / 64; }
-            else if (directionCount == 2) { tickTime = (1.2 / 64); }
+            double tickTime = 1;
+            if (directionCount == 1) { tickTime = 1.0 / speed; }
+            else if (directionCount == 2) { tickTime = (1.0 / speed * 1.41); }
             if (moveTime >= tickTime)
             {
                 for (int i = 0; i < 4; i++)
