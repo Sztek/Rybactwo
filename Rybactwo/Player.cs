@@ -58,7 +58,7 @@ namespace Rybactwo
             }
             if (!hold && cast > 0)
             {
-                item.Use(0, cast, direction);
+                item.Use(1, cast, direction);
                 cast = 0;
             }
         }

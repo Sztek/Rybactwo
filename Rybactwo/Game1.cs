@@ -40,13 +40,18 @@ namespace Rybactwo
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d); // 30fps
+            TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
             //IsMouseVisible = true;
             showDebug = false;
+        }
+        protected override void Initialize()
+        {
+            base.Initialize();
         }
 
         protected override void LoadContent()
         {
+            
             mapa = new Map();
             player = new Player();
             npc1 = new Npc();
@@ -67,10 +72,11 @@ namespace Rybactwo
             gameFont = Content.Load<SpriteFont>("font");
             hud = Content.Load<Texture2D>("hud");
 
-            Texture2D[] misc = new Texture2D[1];
+            Texture2D[] misc = new Texture2D[2];
 
             misc[0] = new Texture2D(GraphicsDevice, 1, 1);
             misc[0].SetData(new Color[] { Color.Red });
+            misc[1] = Content.Load<Texture2D>("splawik");
 
             player.Load(spriteBatch, character, misc);
             npc1.Load(spriteBatch, character);
@@ -87,7 +93,6 @@ namespace Rybactwo
             double dTime = gameTime.ElapsedGameTime.TotalSeconds;
             KeyboardState kstate = Keyboard.GetState();
             Vector2 shift = new(0);
-            Vector2 shift2 = new(0);
 
             if (kstate.IsKeyDown(Keys.F1))
             {
@@ -151,7 +156,7 @@ namespace Rybactwo
             position.X = mState.X;
             position.Y = mState.Y;
 
-            if (mState.LeftButton == ButtonState.Pressed)                   // 
+            if (mState.LeftButton == ButtonState.Pressed)
             {
                 userLeftClicks++;
             }

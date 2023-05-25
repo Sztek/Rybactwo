@@ -17,12 +17,16 @@ namespace Rybactwo
         private Vector2 move;
         private bool isVisable;
         private int ticksToEnd;
+        private int rectMove;
+        private int rectMoveSpeed;
 
         public Item(Vector2 playerPosition)
         {
             start = playerPosition;
             position = start;
             move = new Vector2(0);
+            rectMove = 0;
+            rectMoveSpeed = 1;
             ticksToEnd = 0;
         }
 
@@ -33,7 +37,7 @@ namespace Rybactwo
                 spritebatch.Draw(
                             this.texture,
                             new Vector2((int)position.X, (int)position.Y),
-                            new Rectangle(0, 0, 4, 4),
+                            new Rectangle(0 + rectMove*16, 0, 16, 16),
                             Color.White);
             }
         }
@@ -44,8 +48,10 @@ namespace Rybactwo
             texture = textures[id];
             switch (id)
             {
-                case 0:
+                case 1:
                     ticksToEnd = (int)(power * 60 * 2);
+                    rectMoveSpeed = ticksToEnd / 4;
+                    if (rectMoveSpeed <= 0) { rectMoveSpeed = 1; }
                     switch (direction)
                     {
                         case 0:
@@ -64,7 +70,7 @@ namespace Rybactwo
                     }
 
                     break;
-                case 1:
+                case 0:
                     break;
                 default: break;
             }
@@ -77,6 +83,7 @@ namespace Rybactwo
             {
                 isVisable = false;
                 ticksToEnd = 0;
+                rectMove = 0;
                 move = new Vector2(0);
                 position = start;
                 return false;
@@ -84,6 +91,7 @@ namespace Rybactwo
             else
             {
                 ticksToEnd--;
+                if (ticksToEnd % rectMoveSpeed == 0) { rectMove += 1; }
                 return true;
             }
         }
