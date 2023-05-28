@@ -35,6 +35,7 @@ namespace Rybactwo
         private double moveTime;
         public int speed;
         //private readonly SoundPlayer soundPlayer;
+        public double tickTime = 1;
 
         public Map()
         {
@@ -92,9 +93,9 @@ namespace Rybactwo
             byte directionCount = 0;
             foreach (bool x in direction) { if (x) { directionCount++; } }
             moveTime += dTime;
-            double tickTime = 1;
-            if (directionCount == 1) { tickTime = 1.0 / speed; }
-            else if (directionCount == 2) { tickTime = (1.0 / speed * 1.41); }
+            tickTime = 1;
+            if (directionCount == 1 || directionCount == 3) { tickTime = 1.0 / speed; }
+            else if (directionCount == 2) { tickTime = (1.41 / speed); }
             if (moveTime >= tickTime)
             {
                 for (int i = 0; i < 4; i++)

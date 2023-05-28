@@ -14,19 +14,20 @@ namespace Rybactwo
     {
         static Point gameResolution = new(320, 180);
         bool showDebug;
+        Color colorDebug;
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Texture2D tileset;
         Texture2D character;
-        //Texture2D pointingCrosshair;
-        //Texture2D actionCrosshair;
+        Texture2D crosshair;
         Texture2D hud;
 
         SpriteFont gameFont;
 
         RenderTarget2D renderTarget;
         Rectangle renderTargetDestination;
+        Vector2 scale;
 
         Map mapa;
         Player player;
@@ -34,15 +35,16 @@ namespace Rybactwo
 
         MouseState mState;                              // Get info from mouse
         Vector2 position;
-        int userLeftClicks = 0;
+        KeyboardState prevState;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
-            //IsMouseVisible = true;
-            showDebug = false;
+            TargetElapsedTime = TimeSpan.FromSeconds(1d / 120d);
+            IsMouseVisible = false;
+            showDebug = true;
+            colorDebug = Color.White;
         }
         protected override void Initialize()
         {
@@ -63,13 +65,13 @@ namespace Rybactwo
 
             graphics.ApplyChanges();
 
-            //Content.Load<SoundEffect>("abc").Play();
             //Loading Sprites
             tileset = Content.Load<Texture2D>("tileset");
             character = Content.Load<Texture2D>("NPC1");
             //pointingCrosshair = Content.Load<Texture2D>("cursorselect");
             //actionCrosshair = Content.Load<Texture2D>("cursorgrabbing");
             gameFont = Content.Load<SpriteFont>("font");
+            crosshair = Content.Load<Texture2D>("kursor");
             hud = Content.Load<Texture2D>("hud");
 
             Texture2D[] misc = new Texture2D[2];
@@ -83,53 +85,51 @@ namespace Rybactwo
             mapa.Load(tileset, spriteBatch);
 
             renderTarget = new RenderTarget2D(GraphicsDevice, gameResolution.X, gameResolution.Y);
-            renderTargetDestination = GetRenderTargetDestination(gameResolution, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
+            renderTargetDestination = GetRenderTargetDestination(
+                gameResolution, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight);
             this.ToggleFullScreen();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            // Game update code
             double dTime = gameTime.ElapsedGameTime.TotalSeconds;
-            KeyboardState kstate = Keyboard.GetState();
+            KeyboardState kState = Keyboard.GetState();
             Vector2 shift = new(0);
 
-            if (kstate.IsKeyDown(Keys.F1))
+            if (kState.IsKeyDown(Keys.F1) && prevState.IsKeyUp(Keys.F1))
             {
-                showDebug = true;
-            }
-            if (kstate.IsKeyDown(Keys.F2))
-            {
-                showDebug = false;
+                if (showDebug) { showDebug = false; }
+                else { showDebug = true; }
             }
 
-            if (kstate.IsKeyDown(Keys.Escape))
+            if (prevState.IsKeyUp(Keys.Escape) && kState.IsKeyDown(Keys.Escape))
             {
                 ToggleFullScreen();
             }
             
-            if (kstate.IsKeyDown(Keys.LeftShift))
+            if (kState.IsKeyDown(Keys.LeftShift))
             {
                 mapa.speed = 64;
             }
             else { mapa.speed = 48; }
+
             for (int i = 0; i < 4; i++) { mapa.direction[i] = false; }
-            if (kstate.IsKeyDown(Keys.W))
+            if (kState.IsKeyDown(Keys.W))
             {
                 mapa.direction[0] = true;
                 player.direction = 0;
             }
-            if (kstate.IsKeyDown(Keys.S))
+            if (kState.IsKeyDown(Keys.S))
             {
                 mapa.direction[1] = true;
                 player.direction = 1;
             }
-            if (kstate.IsKeyDown(Keys.A))
+            if (kState.IsKeyDown(Keys.A))
             {
                 mapa.direction[2] = true;
                 player.direction = 2;
             }
-            if (kstate.IsKeyDown(Keys.D))
+            if (kState.IsKeyDown(Keys.D))
             {
                 mapa.direction[3] = true;
                 player.direction = 3;
@@ -137,7 +137,7 @@ namespace Rybactwo
             mapa.Tick(dTime);
             //shift2 = mapa.Move(shift);
 
-            if (kstate.IsKeyDown(Keys.Space))
+            if (kState.IsKeyDown(Keys.Space))
             {
                 player.ClickAction(true);
             }
@@ -151,16 +151,12 @@ namespace Rybactwo
             player.Tick(dTime);
 
             // Mouse usage
-
+            
             mState = Mouse.GetState();                                      // Returns mouse state (every frame)
             position.X = mState.X;
             position.Y = mState.Y;
 
-            if (mState.LeftButton == ButtonState.Pressed)
-            {
-                userLeftClicks++;
-            }
-
+            prevState = kState;
             base.Update(gameTime);
         }
 
@@ -178,6 +174,9 @@ namespace Rybactwo
                             new Vector2(0,0),
                             new Rectangle(0, 0, 320, 180),
                             Color.White);
+            spriteBatch.Draw(crosshair,
+                            new Vector2((int)(position.X / scale.X), (int)(position.Y / scale.Y)),
+                            new Rectangle(0, 0, 4, 4), Color.White);
 
             spriteBatch.End();
             GraphicsDevice.SetRenderTarget(null);
@@ -187,21 +186,26 @@ namespace Rybactwo
                 SamplerState.PointClamp,
                 null, null, null, Matrix.CreateScale(1, 1, 0));
             spriteBatch.Draw(renderTarget, renderTargetDestination, Color.White);
-            //spriteBatch.Draw(pointingCrosshair, position, Color.White);
+
             if (showDebug)
             {
-
-                spriteBatch.DrawString(gameFont, userLeftClicks.ToString(), new Vector2(10, 10), Color.Black);
+                int line = -10;
+                int next = 20;
                 spriteBatch.DrawString(gameFont,
                     "BLOCK SHIFT: " + ((int)mapa.shiftBlock.X) + " , " + ((int)mapa.shiftBlock.Y),
-                    new Vector2(10, 30), Color.Black);
+                    new Vector2(10, line += next), colorDebug);
                 spriteBatch.DrawString(gameFont,
                     "MAP SHIFT: " + ((int)mapa.shiftMap.X).ToString() + ", " + ((int)mapa.shiftMap.Y).ToString(),
-                    new Vector2(10, 50), Color.Black);
-                spriteBatch.DrawString(gameFont, "CAST: " + player.cast.ToString(), new Vector2(10, 70), Color.Black);
+                    new Vector2(10, line += next), colorDebug);
+                spriteBatch.DrawString(gameFont,
+                    "CAST: " + player.cast.ToString(),
+                    new Vector2(10, line += next), colorDebug);
                 spriteBatch.DrawString(gameFont,
                     "FPS: " + (gameTime.ElapsedGameTime.TotalSeconds).ToString(),
-                    new Vector2(10, 90), Color.Black);
+                    new Vector2(10, line += next), colorDebug);
+                spriteBatch.DrawString(gameFont,
+                    "SPEED: " + (mapa.tickTime).ToString(),
+                    new Vector2(10, line += next), colorDebug);
 
             }
             spriteBatch.End();
@@ -215,11 +219,15 @@ namespace Rybactwo
             {
                 graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
                 graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                scale = new Vector2(
+                GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width / gameResolution.X,
+                GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height / gameResolution.Y);
             }
             else
             {
                 graphics.PreferredBackBufferWidth = gameResolution.X;
                 graphics.PreferredBackBufferHeight = gameResolution.Y;
+                scale = new Vector2(1, 1);
             }
             graphics.IsFullScreen = !graphics.IsFullScreen;
             graphics.ApplyChanges();
