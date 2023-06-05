@@ -18,7 +18,6 @@ namespace Rybactwo
     internal class Map
     {
         public int[,,] tileMap;
-        public bool[,] collisionMap;
         private static Point size = new(16, 10);
         private static Point center = new(10, 6);
         private static byte warstwy = 3;
@@ -43,17 +42,9 @@ namespace Rybactwo
             sizeMapY = 600;
             tileMapWidth = 103;
             tileMap = new int[warstwy, sizeMapX, sizeMapY];
-            collisionMap = new bool[sizeMapX, sizeMapY];
             direction = new bool[4];
             moveTime = 0;
             speed = 48;
-
-            //Im schizo
-
-            //string filePath = "1.wav";
-
-            //string filePath = Path.Combine("..\\Content", "1.wav");
-            //SoundPlayer soundPlayer = new(filePath);
             
             for (int i = 0; i < sizeMapX; i++)
             {
@@ -62,7 +53,6 @@ namespace Rybactwo
                     for (int k = 0; k < warstwy; k++)
                     {
                         tileMap[k, i, j] = -1;
-                        collisionMap[i, j] = false;
                     }
                 }
             }
@@ -80,9 +70,9 @@ namespace Rybactwo
             switch (id)
             {
                 case 0:
-                    LoadMapFromFile("prolog_teren.csv", 0);
-                    LoadMapFromFile("prolog_obiekty.csv", 1);
-                    LoadMapFromFile("prolog_bibeloty.csv", 2);
+                    LoadMapFromFile("..\\..\\..\\Content\\prolog_teren.csv", 0);
+                    LoadMapFromFile("..\\..\\..\\Content\\prolog_obiekty.csv", 1);
+                    LoadMapFromFile("..\\..\\..\\Content\\prolog_bibeloty.csv", 2);
                     break;
                 default: break;
             }
@@ -139,51 +129,6 @@ namespace Rybactwo
                             place,
                             GetTile(tileMap[k, i + shiftMap.X, j + shiftMap.Y]),
                             Color.White);
-
-                        if (place.Y == 80 - block)
-                        {
-                            if (place.X < 144 && place.X > 144 - 16)
-                            {
-                                wall[0] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                            if (place.X >= 144 && place.X < 144 + 16)
-                            {
-                                wall[1] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                        } //collision up
-                        if (place.Y == 80 + block)
-                        {
-                            if (place.X < 144 && place.X > 144 - 16)
-                            {
-                                wall[2] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                            if (place.X >= 144 && place.X < 144 + 16)
-                            {
-                                wall[3] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                        } //collision down
-                        if (place.X == 144 - block)
-                        {
-                            if (place.Y < 80 && place.Y > 80 - 16)
-                            {
-                                wall[4] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                            if (place.Y >= 80 && place.Y < 80 + 16)
-                            {
-                                wall[5] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                        } //collision left
-                        if (place.X == 144 + block)
-                        {
-                            if (place.Y < 80 && place.Y > 80 - 16)
-                            {
-                                wall[6] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                            if (place.Y >= 80 && place.Y < 80 + 16)
-                            {
-                                wall[7] = collisionMap[i + shiftMap.X, j + shiftMap.Y];
-                            }
-                        } //collision right
                     }
                 }
             }
@@ -193,27 +138,6 @@ namespace Rybactwo
         {
             if (shift.X != 0 || shift.Y != 0)
             {
-                if ((wall[0] == true || wall[1] == true) && shift.Y < 0)
-                {
-                    shift.Y = 0;
-                    //                 soundPlayer.Play();
-                }
-                if ((wall[2] == true || wall[3] == true) && shift.Y > 0)
-                {
-                    shift.Y = 0;
-                    //                 soundPlayer.Play();
-                }
-                if ((wall[4] == true || wall[5] == true) && shift.X < 0)
-                {
-                    shift.X = 0;
-                    //                 soundPlayer.Play();
-                }
-                if ((wall[6] == true || wall[7] == true) && shift.X > 0)
-                {
-                    shift.X = 0;
-                    //                soundPlayer.Play();
-                }
-
                 shiftBlock -= shift;
 
                 if (shiftBlock.Y > 0)
@@ -250,7 +174,7 @@ namespace Rybactwo
                     shiftMap.Y = 0;
                 }
             }
-            return new Vector2(shiftMap.X * 16 - shiftBlock.X, shiftMap.Y * 16 - shiftBlock.Y);
+            return new Vector2(shiftMap.X * block - shiftBlock.X, shiftMap.Y * block - shiftBlock.Y);
         }
 
         private void LoadMapFromFile(string file, int w)
@@ -266,21 +190,6 @@ namespace Rybactwo
                     for (int j = 0; j < values.Length; j++)
                     {
                         tileMap[w, j, i] = int.Parse(values[j]);
-                        switch (tileMap[w, j, i])
-                        {
-                            case 1:
-                                collisionMap[j, i] = false;
-                                break;
-                            case 5:
-                                collisionMap[j, i] = false;
-                                break;
-                            case 6:
-                                collisionMap[j, i] = false;
-                                break;
-                            default:
-                                collisionMap[j, i] = false;
-                                break;
-                        }
                     }
                     i++;
                 }
